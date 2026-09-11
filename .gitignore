@@ -1,0 +1,8 @@
+node_modules/
+*.tgz
+output/
+.env
+.env.*
+.fmode/
+.claude/settings.local.json
+.DS_Store

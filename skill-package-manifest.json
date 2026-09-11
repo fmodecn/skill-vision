@@ -1,0 +1,17 @@
+{
+  "name": "fmode-vision",
+  "version": "0.2.0",
+  "description": "Claude Code 独立技能包：通过 Fmode API 视觉模型对图片、视频进行分析。支持单轮分析、多轮聚焦分析、视频帧分析与批量处理，并内置毛坯房量尺 5-pass 分析提示词。",
+  "plugin": "fmode-vision",
+  "skills": [
+    "fmode-vision"
+  ],
+  "entrySkill": "fmode-vision",
+  "npmPackage": "fmode-vision",
+  "smokeCommand": "npm run smoke",
+  "installCommand": "npx fmode-vision@latest install",
+  "workspaceInstallCommand": "npx fmode-vision@latest workspace",
+  "workspaceSkillPath": ".claude/skills/fmode-vision/SKILL.md",
+  "globalSkillPath": "%USERPROFILE%/.claude/skills/fmode-vision/SKILL.md",
+  "installHint": "工作区安装：npx fmode-vision@latest workspace，会写入 ./.claude/skills/fmode-vision/。用户级安装：npx fmode-vision@latest install，会写入 ~/.claude/skills/fmode-vision/。模型选择：宿主多模态优先（Claude Code / Codex 配置的视觉模型直接读图），未命中回落 Fmode API glm-5.3-flash。Token 优先级：FMODE_API_TOKEN > ~/.fmode/config.json > ~/.claude/settings.json 的 env.ANTHROPIC_AUTH_TOKEN（sk- token，自动读取）> 项目 .fmode/config.json。"
+}

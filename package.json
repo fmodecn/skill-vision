@@ -1,0 +1,39 @@
+{
+  "name": "fmode-vision",
+  "version": "0.2.0",
+  "description": "Claude Code skill: analyze images and videos with host-multimodal-first detection (Claude Code / Codex vision models) falling back to Fmode API glm-5.3-flash. Single-pass and multi-pass focused analysis with structured JSON output. Token chain: FMODE_API_TOKEN, ~/.fmode/config.json, ~/.claude/settings.json env.ANTHROPIC_AUTH_TOKEN, project .fmode/config.json.",
+  "type": "commonjs",
+  "bin": {
+    "fmode-vision": "bin/fmode-vision.js"
+  },
+  "scripts": {
+    "smoke": "node scripts/smoke.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fmodecn/fmode-vision.git"
+  },
+  "homepage": "https://github.com/fmodecn/fmode-vision#readme",
+  "bugs": {
+    "url": "https://github.com/fmodecn/fmode-vision/issues"
+  },
+  "files": [
+    ".claude-plugin/",
+    "bin/",
+    "README.md",
+    "scripts/",
+    "skill-package-manifest.json",
+    "skills/"
+  ],
+  "keywords": [
+    "claude-code",
+    "claude-skill",
+    "fmode",
+    "vision",
+    "image-analysis",
+    "multimodal",
+    "glm"
+  ],
+  "license": "MIT",
+  "dependencies": {}
+}
