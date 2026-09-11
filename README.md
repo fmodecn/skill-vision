@@ -33,8 +33,9 @@
 
 ## Token 加载链（仅 Fmode API 路径需要）
 
-按优先级自动解析（**仓库与代码中无任何密钥**）：
+按优先级自动解析（第0级自举 → 回落，**仓库与代码中无任何密钥**）：
 
+0. **第0级自举（推荐）**：`FMODE_SESSION_TOKEN` 环境变量或 `~/.fmode/config.json` 的 `sessionToken` → 调 fmode API 动态换取 API token。登录 FMODE Studio 即可，无需手工配置；token 仅内存持有，不落盘不进日志
 1. 环境变量 `FMODE_API_TOKEN`
 2. `~/.fmode/config.json` → `fmodeApiToken` / `newapiToken`（FmodeStudio 保存配置后写入）
 3. `~/.claude/settings.json`（含 `settings.local.json` / 项目级 `.claude/`）的 `env.ANTHROPIC_AUTH_TOKEN` —— 即 Claude Code 的 `sk-` token（仅当 `sk-` 开头、非 `sk-ant-`、base 指向 fmode 时采纳，零配置自动命中）

@@ -47,9 +47,10 @@ if (result.provider === 'host') {
 
 ## Token 获取（加载链）
 
-仅 Fmode API 路径需要 token（宿主多模态路径零 token）。按以下优先级查找：
+仅 Fmode API 路径需要 token（宿主多模态路径零 token）。按以下优先级查找（第0级自举 → 回落）：
 
-1. **环境变量** `FMODE_API_TOKEN`（最高优先级）
+0. **第0级自举**：`FMODE_SESSION_TOKEN` 或 `~/.fmode/config.json` 的 `sessionToken` → 调 fmode API 动态换取 API token（登录 FMODE Studio 即可，无需手工配置；token 仅内存持有，不落盘不进日志）
+1. **环境变量** `FMODE_API_TOKEN`
    ```bash
    echo $FMODE_API_TOKEN
    ```

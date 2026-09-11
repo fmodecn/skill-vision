@@ -17,9 +17,12 @@
 
 ### 1. Token 解析链 (`resolveApiToken`)
 
-四级优先级，短路返回：
+第0级自举 + 四级回落，短路返回：
 
 ```
+【第0级 自举】FMODE_SESSION_TOKEN 环境变量 或 ~/.fmode/config.json 的 sessionToken
+  → 调 fmode API 动态换取 API token（登录 FMODE Studio 即可，无需手工配置；
+    token 仅内存持有，不落盘不进日志；换取失败明确报错后回落）
 FMODE_API_TOKEN 环境变量
   → ~/.fmode/config.json 的 fmodeApiToken / newapiToken 字段
     → ~/.claude/settings.json（含 settings.local.json / 项目级 .claude/）

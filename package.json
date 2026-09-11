@@ -1,6 +1,6 @@
 {
   "name": "fmode-vision",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Claude Code skill: analyze images and videos with host-multimodal-first detection (Claude Code / Codex vision models) falling back to Fmode API glm-5.3-flash. Single-pass and multi-pass focused analysis with structured JSON output. Token chain: FMODE_API_TOKEN, ~/.fmode/config.json, ~/.claude/settings.json env.ANTHROPIC_AUTH_TOKEN, project .fmode/config.json.",
   "type": "commonjs",
   "bin": {

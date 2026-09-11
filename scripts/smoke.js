@@ -63,7 +63,7 @@ for (const rel of required) {
   const savedFmodeToken = process.env.FMODE_API_TOKEN;
   delete process.env.FMODE_API_TOKEN;
   try {
-    mod.resolveApiToken(tmpHome);
+    await mod.resolveApiToken(tmpHome);
     fail('resolveApiToken should throw when no token source exists');
   } catch (e) {
     if (!/FMODE_API_TOKEN/.test(e.message)) fail('error message should mention FMODE_API_TOKEN');
