@@ -1,7 +1,7 @@
 {
-  "name": "fmode-vision",
+  "name": "skill-vision",
   "description": "Analyze images and videos via Fmode API vision models. Single-pass and multi-pass focused analysis with structured JSON output, plus a renovation room-measurement prompt pipeline.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "fmode"
   }

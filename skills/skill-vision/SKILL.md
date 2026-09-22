@@ -1,5 +1,5 @@
 ---
-name: fmode-vision
+name: skill-vision
 description: "通过 Fmode API 调用视觉模型对图片、视频进行分析。适用场景：(1) 图片内容识别与结构化提取, (2) 多轮聚焦分析获取高精度结果, (3) 视频帧分析, (4) 视觉素材批量处理"
 description_en: "Analyze images and videos via Fmode API vision models. Use for: (1) Image content recognition and structured extraction, (2) Multi-pass focused analysis for high-precision results, (3) Video frame analysis, (4) Batch visual material processing"
 ---

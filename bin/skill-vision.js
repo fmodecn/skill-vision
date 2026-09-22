@@ -4,7 +4,7 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const SKILL_NAME = 'fmode-vision';
+const SKILL_NAME = 'skill-vision';
 const SOURCE_ROOT = path.resolve(__dirname, '..');
 const SKILL_SOURCE = path.join(SOURCE_ROOT, 'skills', SKILL_NAME);
 const WORKSPACE_ROOT = process.cwd();
@@ -40,19 +40,19 @@ function parseArgs(argv) {
 
 function printHelp() {
   console.log([
-    'fmode-vision skill installer',
+    'skill-vision skill installer',
     '',
     'Usage:',
-    '  npx fmode-vision@latest workspace [--smoke]   # install into ./.claude/skills/fmode-vision',
-    '  npx fmode-vision@latest install [--smoke]      # install into ~/.claude/skills/fmode-vision',
-    '  npx fmode-vision@latest install --target <dir> [--force]',
-    '  npx fmode-vision@latest check',
-    '  npx fmode-vision@latest smoke',
-    '  npx fmode-vision@latest path',
+    '  npx skill-vision@latest workspace [--smoke]   # install into ./.claude/skills/skill-vision',
+    '  npx skill-vision@latest install [--smoke]      # install into ~/.claude/skills/skill-vision',
+    '  npx skill-vision@latest install --target <dir> [--force]',
+    '  npx skill-vision@latest check',
+    '  npx skill-vision@latest smoke',
+    '  npx skill-vision@latest path',
     '',
     'Options:',
-    '  --workspace      Install into ./.claude/skills/fmode-vision',
-    '  --global         Install into ~/.claude/skills/fmode-vision (default)',
+    '  --workspace      Install into ./.claude/skills/skill-vision',
+    '  --global         Install into ~/.claude/skills/skill-vision (default)',
     '  --target <dir>   Install into a custom directory',
     '  --force          Allow overwriting a custom target',
     '  --smoke          Run smoke checks after install',
@@ -152,4 +152,4 @@ function main() {
 }
 
 try { main(); }
-catch (error) { console.error(`fmode-vision failed: ${error.message}`); process.exit(1); }
+catch (error) { console.error(`skill-vision failed: ${error.message}`); process.exit(1); }

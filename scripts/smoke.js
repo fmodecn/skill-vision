@@ -5,7 +5,7 @@ const os = require('os');
 const { pathToFileURL } = require('url');
 
 const ROOT = path.resolve(__dirname, '..');
-const SKILL_DIR = path.join(ROOT, 'skills', 'fmode-vision');
+const SKILL_DIR = path.join(ROOT, 'skills', 'skill-vision');
 
 function fail(msg) { console.error('SMOKE FAIL: ' + msg); process.exit(1); }
 
@@ -53,7 +53,7 @@ for (const rel of required) {
   }
 
   // Token 加载链：隔离 HOME 下无任何 token → 应抛错并列出四级来源
-  const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'fmode-vision-smoke-'));
+  const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-vision-smoke-'));
   const oldHome = process.env.HOME;
   process.env.HOME = tmpHome;
   const savedToken = process.env.ANTHROPIC_AUTH_TOKEN;
@@ -75,5 +75,5 @@ for (const rel of required) {
     fs.rmSync(tmpHome, { recursive: true, force: true });
   }
 
-  console.log('SMOKE OK: fmode-vision package structure + module exports + model selection + token chain verified');
+  console.log('SMOKE OK: skill-vision package structure + module exports + model selection + token chain verified');
 })().catch(e => fail(e.message));

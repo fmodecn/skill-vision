@@ -3,7 +3,7 @@
 ## 项目结构
 
 ```
-.claude/skills/fmode-vision/
+.claude/skills/skill-vision/
 ├── SKILL.md                       # 技能入口，Claude 读取后知道何时及如何使用本技能
 ├── README.md                      # 本文件：开发者维护文档
 ├── .skillfish.json                # 技能元信息（版本、来源仓库）
