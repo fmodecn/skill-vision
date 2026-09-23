@@ -4,16 +4,16 @@ description: "通过 Fmode API 调用视觉模型对图片、视频进行分析�
 description_en: "Analyze images and videos via Fmode API vision models. Use for: (1) Image content recognition and structured extraction, (2) Multi-pass focused analysis for high-precision results, (3) Video frame analysis, (4) Batch visual material processing"
 version: 1.1.0
 author: Yuyang001 (FmodeAgent)
-license: MIT
+license: MPL-2.0
 copyright: "Copyright (c) 2026 未来飞马 Fmode"
-tags: [未来飞马, 智能体技能, 超级技能, 服务级, 图像视觉, FmodeAgent, FmodeCode, vision, image-analysis, multimodal, structured-output]
+tags: [未来飞马, 智能体技能, 超级技能, 服务级, 图像视觉, FmodeAgent, Hermes Agent, FmodeCode, Claude Code, vision, image-analysis, multimodal, structured-output]
 ---
 
 # Fmode Vision — 视觉识别技能
 
 ## Overview
 
-本技能封装视觉识别能力：优先用**宿主 Agent 自带的多模态模型**读图（Claude Code / Codex 配置的模型支持视觉时直接用，不产生任何额外调用），否则回落 Fmode API (api.fmode.cn) 的视觉模型 `glm-5.3-flash`，支持单轮和多轮分析。用户可能要求你分析图片、处理视频帧、或对视觉素材进行结构化信息提取。
+本技能封装视觉识别能力：优先用**宿主 Agent 自带的多模态模型**读图（FmodeCode / Claude Code / Codex 配置的模型支持视觉时直接用，不产生任何额外调用），否则回落 Fmode API (api.fmode.cn) 的视觉模型 `glm-5.3-flash`，支持单轮和多轮分析。用户可能要求你分析图片、处理视频帧、或对视觉素材进行结构化信息提取。
 
 ## 模型选择策略（初始化时必读）
 
@@ -21,13 +21,13 @@ tags: [未来飞马, 智能体技能, 超级技能, 服务级, 图像视觉, Fmo
 
 ```
 detectHostVisionModel() 探测顺序：
-① Claude Code 配置：./.claude/settings.json 或 ~/.claude/settings.json
+① FmodeCode / Claude Code 配置：./.claude/settings.json 或 ~/.claude/settings.json
    （含 settings.local.json）的 model 字段 / env.ANTHROPIC_MODEL
 ② Codex 配置：~/.codex/config.toml 的 model 字段
 ③ 环境变量 FMODE_VISION_MODEL（用户显式指定的视觉模型，直接采纳）
 ```
 
-- **宿主模型命中多模态能力名单**（`claude-4*` / `claude-opus` / `claude-sonnet-4` / `gpt-4o` / `gpt-5*` / `gemini-2*` / `gemini-3*` / `o3` 等）且运行在 Claude Code / Codex 会话内
+- **宿主模型命中多模态能力名单**（`claude-4*` / `claude-opus` / `claude-sonnet-4` / `gpt-4o` / `gpt-5*` / `gemini-2*` / `gemini-3*` / `o3` 等）且运行在 FmodeCode / Claude Code / Codex 会话内
   → **直接用宿主模型读图**：用你自己的 Read 工具读取图片文件，结合提示词完成分析。
   **不调 GLM、不发网络请求、不消耗 Fmode token。** 输出时注明「已用宿主多模态模型」。
 - **未命中**（宿主模型不支持视觉，或独立脚本运行）
@@ -63,7 +63,7 @@ if (result.provider === 'host') {
    ```bash
    cat ~/.fmode/config.json
    ```
-3. **Claude Code 配置** `~/.claude/settings.json`（含 settings.local.json / 项目级 `.claude/`）的 `env.ANTHROPIC_AUTH_TOKEN` —— 即 Claude Code 的 `sk-` token（`sk-` 开头、非 `sk-ant-`、base 指向 fmode 时自动采纳，无需手动配置）
+3. **FmodeCode / Claude Code 配置** `~/.claude/settings.json`（含 settings.local.json / 项目级 `.claude/`）的 `env.ANTHROPIC_AUTH_TOKEN` —— 即 FmodeCode / Claude Code 的 `sk-` token（`sk-` 开头、非 `sk-ant-`、base 指向 fmode 时自动采纳，无需手动配置）
 4. **项目级配置** `<project>/.fmode/config.json` → `fmodeApiToken` / `newapiToken`
 
 如果四级都未找到，提示用户提供 token。**仓库与文档中不出现任何真实密钥。**
@@ -110,7 +110,7 @@ if (result.provider === 'host') {
 
 ```
 需要分析视觉内容？
-├── 宿主多模态命中（Claude Code / Codex 视觉模型）→ Read 工具直接读图
+├── 宿主多模态命中（FmodeCode / Claude Code / Codex 视觉模型）→ Read 工具直接读图
 ├── 简单描述/单维度提取 → 单轮分析 (analyze / callVisionAPI)
 ├── 多维度精确标注 → 多轮聚焦分析 (callMultiPass)
 │   ├── 每轮独立调用，专注一个维度

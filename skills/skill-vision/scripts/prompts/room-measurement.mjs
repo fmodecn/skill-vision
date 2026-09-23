@@ -1,10 +1,11 @@
 // Copyright (c) 未来飞马
 //
-// Licensed under the MIT License. See LICENSE in the project root
-// for the full license text.
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
 // Trademark Notice:
-// The MIT license grants copyright permissions for source code only.
+// The MPL-2.0 license grants copyright permissions for source code only.
 // It does NOT grant any rights to use trademarks including "未来飞马",
 // "Harness Loop", "RSI", and associated slogan "让AI进化提前发生，让AI落地快人一步".
 // Any use of these trademarks requires separate written permission.

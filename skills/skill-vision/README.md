@@ -27,12 +27,12 @@ FMODE_API_TOKEN 环境变量
   → ~/.fmode/config.json 的 fmodeApiToken / newapiToken 字段
     → ~/.claude/settings.json（含 settings.local.json / 项目级 .claude/）
       的 env.ANTHROPIC_AUTH_TOKEN（sk- 开头、非 sk-ant-、base 指向 fmode）
-      （Claude Code 会话内注入的进程环境变量也在此级命中）
+      （FmodeCode / Claude Code 会话内注入的进程环境变量也在此级命中）
       → <project>/.fmode/config.json 的 fmodeApiToken / newapiToken 字段
         → 抛出异常（提示用户配置）
 ```
 
-设计原因：环境变量适合 CI/CD；用户级配置适合个人开发机；Claude Code 的 `sk-` token 零配置自动命中；项目级配置适合团队共享（加入 .gitignore）。
+设计原因：环境变量适合 CI/CD；用户级配置适合个人开发机；FmodeCode / Claude Code 的 `sk-` token 零配置自动命中；项目级配置适合团队共享（加入 .gitignore）。
 
 ### 1.5 模型选择策略 (`detectHostVisionModel` / `resolveVisionModel` / `analyze`)
 
@@ -42,13 +42,13 @@ FMODE_API_TOKEN 环境变量
 resolveVisionModel():
   显式传入 model 参数        → { provider:'fmode', model }（强制 Fmode API）
   ③ FMODE_VISION_MODEL 环境变量 → { provider:'host', model }（用户显式指定）
-  ① Claude Code settings 的 model / env.ANTHROPIC_MODEL
+  ① FmodeCode / Claude Code settings 的 model / env.ANTHROPIC_MODEL
      命中多模态名单且在会话内  → { provider:'host', model }
   ② ~/.codex/config.toml 的 model 命中名单 → { provider:'host', model }
   未命中                    → { provider:'fmode', model:'glm-5.3-flash' }
 ```
 
-`analyze()` 是总入口：`provider==='host'` 且在 Claude Code / Codex 会话内时返回
+`analyze()` 是总入口：`provider==='host'` 且在 FmodeCode / Claude Code / Codex 会话内时返回
 `{ provider:'host', model, instruction, imagePath }`，AI 用自己的 Read 工具读图完成分析
 （不调 GLM、不消耗 Fmode token）；否则走 Fmode API。探测到宿主多模态但独立脚本运行时
 回落 Fmode API。多模态能力名单见 `vision-client.mjs` 的 `HOST_VISION_MODEL_PATTERNS`。
@@ -140,7 +140,7 @@ export FMODE_API_TOKEN="sk-****（占位符，换成你自己的 token）"
 | 模型 ID | 用途 | 备注 |
 |---------|------|------|
 | `glm-5.3-flash` | 视觉理解（默认回落） | Fmode API 默认视觉模型，替代旧 doubao |
-| 宿主配置模型 | 视觉理解（优先） | Claude Code / Codex 配置的多模态模型，零额外计费 |
+| 宿主配置模型 | 视觉理解（优先） | FmodeCode / Claude Code / Codex 配置的多模态模型，零额外计费 |
 | `glm-4.6v` 等 | 视觉理解 | 调用时传 `model` 参数覆盖 |
 
 模型列表可能更新，以 Fmode API 返回为准。

@@ -56,7 +56,7 @@
     "结构化提取"
   ],
   "author": "Yuyang001 (FmodeAgent)",
-  "license": "MIT",
+  "license": "MPL-2.0",
   "engines": {
     "node": ">=18"
   },

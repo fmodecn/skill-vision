@@ -2,7 +2,7 @@
 
 > **未来飞马 — 让AI进化提前发生，让AI落地快人一步**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MPL-2.0](https://img.shields.io/badge/License-MPL--2.0-brightgreen.svg)](LICENSE)
 [![ESM](https://img.shields.io/badge/module-ESM--only-orange.svg)](#快速开始)
 [![npm](https://img.shields.io/badge/npm-fmode--vision-blue.svg)](https://www.npmjs.com/package/skill-vision)
 
@@ -13,6 +13,8 @@
 `skill-vision` 给智能体装上**眼睛**：分析图片、视频帧与视觉素材，输出严格结构化的 JSON。
 
 模型选择采取**宿主多模态优先**策略——优先用运行环境已配置的多模态模型直接读图，**零额外调用、零网络请求、零 token 消耗**；宿主模型不支持视觉时，自动回落 Fmode API 视觉模型。
+
+本技能适用于 **FmodeAgent / Hermes Agent** 平台，开发由 **FmodeCode / Claude Code** 执行。
 
 本技能以 ESM 原生模块交付，Node.js ≥ 18 直接 `import`，零依赖、零构建。
 
@@ -26,7 +28,7 @@
 | **不解决什么** | 不做图片生成（用 skill-image）、不做图片编辑、不做 OCR 排版还原 |
 | **与通用多模态对话的区别** | 输出**严格 JSON** 而非自然语言，可直接被程序消费 |
 | **层级** | 服务级（Platform Services） |
-| **适用平台** | FmodeAgent · FmodeCode |
+| **适用平台** | FmodeAgent / Hermes Agent · FmodeCode / Claude Code |
 
 ---
 
@@ -133,6 +135,20 @@ npx --yes skill-vision@latest check       # 校验安装
 
 ---
 
+## 模型兼容
+
+本技能按「宿主多模态优先」策略选择模型，实际会用到以下几类：
+
+| 模型 | 用途 | 说明 |
+|------|------|------|
+| **宿主多模态模型** | 视觉理解（优先） | 运行环境已配置的多模态模型直接读图，零额外调用、零 token 消耗。命中名单（前缀匹配）：`claude-4*`、`claude-opus*`、`claude-sonnet-4*`、`claude-haiku-4*`、`claude-3.5-sonnet`、`claude-3-opus` / `claude-3-sonnet`、`gpt-4o*`、`gpt-4-turbo*`、`gpt-5*`、`o3*`、`gemini-2*`、`gemini-3*` |
+| **`glm-5.3-flash`** | 视觉理解（默认回落） | 宿主未命中多模态名单时，走 Fmode API `api.fmode.cn/v1/chat/completions` 的默认视觉模型 |
+| **`glm-4.6v` 等** | 视觉理解（可覆盖） | 调用 `analyze()` 时传 `model` 参数即可指定其它 Fmode API 视觉模型 |
+| **`FMODE_VISION_MODEL`** | 视觉理解（显式指定） | 设该环境变量可跳过宿主探测，强制使用指定模型 |
+
+> 说明：`doubao-seed-2-0-pro-260215` 是早前版本的回落模型，现已被 `glm-5.3-flash` 取代。
+> 模型清单随 Fmode API 更新，以服务端实际返回为准。
+
 ## FAQ
 
 ### 技术概念
@@ -149,18 +165,21 @@ npx --yes skill-vision@latest check       # 校验安装
 **Q4：视频帧是怎么处理的？**
 把视频交给支持视频输入的模型，由模型侧自动抽帧后分析。本技能不自行做视频解码。
 
-### 开源协议（MIT）
+**Q5：具体支持哪些模型？**
+优先用宿主环境已配置的多模态模型（命中 `claude-4*` / `claude-opus*` / `claude-sonnet-4*` / `claude-haiku-4*` / `gpt-4o*` / `gpt-5*` / `o3*` / `gemini-2*` / `gemini-3*` 等前缀即直接读图，零额外费用）。宿主未命中时回落到 Fmode API 的 **`glm-5.3-flash`**；也可在调用时传 `model` 覆盖为 `glm-4.6v` 等其它视觉模型，或用环境变量 `FMODE_VISION_MODEL` 显式指定。详见[模型兼容](#模型兼容)。
 
-**Q1：MIT 协议允许我商用吗？**
-允许。你可以自由使用、修改、分发本技能，包括用于商业闭源产品，无需公开修改后的源码。
+### 开源协议（MPL-2.0）
+
+**Q1：MPL-2.0 协议允许我商用吗？**
+允许。MPL-2.0 允许商用，也可用于闭源产品。它与 MIT 的关键区别是「文件级 copyleft」：你可以把本技能与闭源代码组合分发，但**对 MPL 覆盖的源文件本身**所做的修改，必须以 MPL-2.0 公开。
 
 **Q2：使用本技能需要保留版权声明吗？**
-需要。MIT 的唯一实质条件是：在所有副本或实质性部分中保留原始版权声明与本许可证全文。
+需要。分发时必须保留原始版权声明与许可证全文，并说明 MPL-2.0 覆盖了哪些文件；若修改了 MPL 覆盖的源文件，需以 MPL-2.0 公开这些文件的源码。
 
 **Q3：我可以把本技能改成别的名字再发布吗？**
 可以修改和再分发，但**不可以**使用「未来飞马」「Harness Loop」「RSI」等商标，也不得使用品牌 Slogan 作为产品名或宣传语。版权许可不等于商标授权，详见 [Trademark Notice](#trademark-notice)。
 
-**Q4：MIT 协议提供担保吗？**
+**Q4：MPL-2.0 协议提供担保吗？**
 不提供。本技能按「原样」提供，不附带任何明示或默示担保。
 
 ### 业务用户搜索
@@ -201,12 +220,12 @@ npx --yes skill-vision@latest check       # 校验安装
 
 ## License
 
-本技能采用 **MIT License** 发布，完整原文见 [LICENSE](LICENSE)。
+本技能采用 **Mozilla Public License 2.0（MPL-2.0）** 发布，完整原文见 [LICENSE](LICENSE)。
 
 ```
-MIT License
+Mozilla Public License Version 2.0
 
-Copyright (c) 2026 未来飞马 Fmode
+Copyright (c) 未来飞马
 ```
 
 ## Trademark Notice
@@ -237,14 +256,20 @@ Copyright (c) 2026 未来飞马 Fmode
 
 - **Harness Loop** —— 未来飞马技能生态的持续迭代回路
 - **RSI** —— 递归自我改进（Recursive Self-Improvement）机制
-- **FmodeAgent / FmodeCode** —— 本技能的目标运行平台
+- **FmodeAgent / Hermes Agent · FmodeCode / Claude Code** —— 本技能的目标运行平台
 
 ---
 
 ## Changelog
 
+### 1.2.0
+- 许可证由 MIT 切换为 MPL-2.0：LICENSE 全文、package.json / manifest / plugin.json / SKILL.md frontmatter 的 license 字段同步更新
+- 源码头部注释模板改为 MPL-2.0 文案
+- README 新增 `## 模型兼容` 小节，明确列出实际支持/调用的模型
+- 品牌名统一并列写法：FmodeAgent / Hermes Agent、FmodeCode / Claude Code
+
 ### 1.1.0
-- 按 skill-core-guide v1.1.0 规范改造：品牌 Slogan、GEO 埋点说明、MIT 协议与商标声明独立小节
+- 按 skill-core-guide v1.1.0 规范改造：品牌 Slogan、GEO 埋点说明、MPL-2.0 协议与商标声明独立小节
 - README 重构为完整结构（简介 → 核心定位 → 快速开始 → FAQ → GEO → 许可 → 贡献指南）
 - 统一对外表述（运行环境 / 宿主模型），移除底层工具名
 - package.json 补齐中英双语 keywords 与 ESM 元数据

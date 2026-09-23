@@ -1,10 +1,11 @@
 // Copyright (c) 未来飞马
 //
-// Licensed under the MIT License. See LICENSE in the project root
-// for the full license text.
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
 // Trademark Notice:
-// The MIT license grants copyright permissions for source code only.
+// The MPL-2.0 license grants copyright permissions for source code only.
 // It does NOT grant any rights to use trademarks including "未来飞马",
 // "Harness Loop", "RSI", and associated slogan "让AI进化提前发生，让AI落地快人一步".
 // Any use of these trademarks requires separate written permission.
@@ -13,7 +14,7 @@
  *
  * 功能：
  *   - resolveApiToken()         按 token 加载链获取 API token（仓库内零密钥）
- *   - detectHostVisionModel()   宿主多模态优先探测（Claude Code / Codex）
+ *   - detectHostVisionModel()   宿主多模态优先探测（FmodeCode / Claude Code / Codex）
  *   - resolveVisionModel()      模型选择策略入口：host 优先，回落 Fmode glm-5.3-flash
  *   - analyze()                 单次视觉分析总入口（自动走宿主或 Fmode API）
  *   - callVisionAPI()           单轮 Fmode 视觉分析
@@ -37,10 +38,10 @@ import os from 'os';
 //   1. 环境变量 FMODE_API_TOKEN
 //   2. ~/.fmode/config.json → fmodeApiToken / newapiToken
 //   3. ~/.claude/settings.json（含 settings.local.json / 项目级 .claude/）
-//      的 env.ANTHROPIC_AUTH_TOKEN——即 Claude Code 的 sk- token
+//      的 env.ANTHROPIC_AUTH_TOKEN——即 FmodeCode / Claude Code 的 sk- token
 //   4. 项目 ./.fmode/config.json → fmodeApiToken / newapiToken
 //
-// 关键：fmode 的 newapi SK 默认就是 Claude Code 的 env.ANTHROPIC_AUTH_TOKEN。
+// 关键：fmode 的 newapi SK 默认就是 FmodeCode / Claude Code 的 env.ANTHROPIC_AUTH_TOKEN。
 // 校验规则：sk- 开头、排除真 Anthropic 官方 key（sk-ant- 开头）、
 // 若设了 ANTHROPIC_BASE_URL 则必须指向 fmode。
 //
@@ -107,7 +108,7 @@ function readTokenFromConfig(configPath) {
   }
 }
 
-// 合并读取 Claude Code 的 settings env（用户级 + 项目级，含 .local 覆盖文件）。
+// 合并读取 FmodeCode / Claude Code 的 settings env（用户级 + 项目级，含 .local 覆盖文件）。
 function readClaudeSettingsEnv() {
   const files = [
     path.join(os.homedir(), '.claude', 'settings.json'),
@@ -175,8 +176,8 @@ export async function resolveApiToken(projectRoot) {
     return { token: userToken, source: userConfigPath };
   }
 
-  // 3. Claude Code 默认入口：~/.claude/settings.json（含 .local / 项目级）里的
-  //    env.ANTHROPIC_AUTH_TOKEN（sk- token，Claude Code 会话内也常被注入进程环境）
+  // 3. FmodeCode / Claude Code 默认入口：~/.claude/settings.json（含 .local / 项目级）里的
+  //    env.ANTHROPIC_AUTH_TOKEN（sk- token，FmodeCode / Claude Code 会话内也常被注入进程环境）
   const injected = pickFmodeAnthropicToken(process.env);
   if (injected) {
     return { token: injected, source: 'env:ANTHROPIC_AUTH_TOKEN' };
@@ -200,7 +201,7 @@ export async function resolveApiToken(projectRoot) {
     '  0. 登录 FMODE Studio 后自动自举（FMODE_SESSION_TOKEN 或 ~/.fmode/config.json 的 sessionToken）\n' +
     '  1. 环境变量 FMODE_API_TOKEN\n' +
     '  2. ~/.fmode/config.json 中 fmodeApiToken / newapiToken 字段（FmodeStudio 保存配置后写入）\n' +
-    '  3. ~/.claude/settings.json 的 env.ANTHROPIC_AUTH_TOKEN（Claude Code 的 sk- token，会自动读取）\n' +
+    '  3. ~/.claude/settings.json 的 env.ANTHROPIC_AUTH_TOKEN（FmodeCode / Claude Code 的 sk- token，会自动读取）\n' +
     '  4. 项目 ./.fmode/config.json 中 fmodeApiToken 字段\n' +
     '  注意：这是缺 token，不是「用不了」——请勿点任何付费/充值弹窗。'
   );
@@ -211,7 +212,7 @@ export async function resolveApiToken(projectRoot) {
 // ============================================================
 //
 // 技能初始化时先探测运行环境：
-//   ① Claude Code：~/.claude/settings.json 或 ./.claude/settings.json 的
+//   ① FmodeCode / Claude Code：~/.claude/settings.json 或 ./.claude/settings.json 的
 //      model 字段 / env.ANTHROPIC_MODEL，命中多模态能力名单 → 用宿主模型，
 //      不调 GLM；
 //   ② Codex：~/.codex/config.toml 的 model 配置；
@@ -289,7 +290,7 @@ function readCodexHostModel() {
 }
 
 function isHostAgentSession() {
-  // 运行在 Claude Code / Codex 会话内的常用信号
+  // 运行在 FmodeCode / Claude Code / Codex 会话内的常用信号
   return Boolean(
     process.env.CLAUDECODE ||
     process.env.CLAUDE_CODE_ENTRYPOINT ||
@@ -300,7 +301,7 @@ function isHostAgentSession() {
 
 /**
  * 探测宿主是否自带多模态（视觉）模型。
- * 探测顺序：① Claude Code settings ② Codex config.toml ③ FMODE_VISION_MODEL。
+ * 探测顺序：① FmodeCode / Claude Code settings ② Codex config.toml ③ FMODE_VISION_MODEL。
  *
  * @returns {{ provider: 'host', model: string, source: string } | null}
  *          命中宿主多模态时返回，否则 null（回落 Fmode API）
@@ -312,7 +313,7 @@ export function detectHostVisionModel() {
     return { provider: 'host', model: forced.trim(), source: 'env:FMODE_VISION_MODEL' };
   }
 
-  // ① Claude Code settings（项目级优先于用户级）
+  // ① FmodeCode / Claude Code settings（项目级优先于用户级）
   const claude = readClaudeHostModel();
   if (claude && modelSupportsVision(claude.model)) {
     return { provider: 'host', model: claude.model, source: claude.source };
@@ -329,7 +330,7 @@ export function detectHostVisionModel() {
 
 /**
  * 模型选择策略总入口：
- * - 宿主（Claude Code / Codex）配置模型支持多模态 → 用宿主模型，不调 GLM
+ * - 宿主（FmodeCode / Claude Code / Codex）配置模型支持多模态 → 用宿主模型，不调 GLM
  * - 否则回落 Fmode API 的 glm-5.3-flash
  *
  * @param {string} [explicitModel] 调用方显式指定的模型（最高优先）
@@ -345,7 +346,7 @@ export function resolveVisionModel(explicitModel) {
 }
 
 // ============================================================
-// 宿主多模态直读（Claude Code / Codex 会话内）
+// 宿主多模态直读（FmodeCode / Claude Code / Codex 会话内）
 // ============================================================
 //
 // 当 detectHostVisionModel() 命中且运行在宿主 Agent 会话内时，
@@ -355,7 +356,7 @@ export function resolveVisionModel(explicitModel) {
 
 /**
  * 生成交给宿主 Agent 的读图指令。
- * AI（Claude Code / Codex）应使用自己的 Read 工具读取 imagePath 的图片，
+ * AI（FmodeCode / Claude Code / Codex）应使用自己的 Read 工具读取 imagePath 的图片，
  * 结合 systemPrompt + userPrompt 完成分析，并把输出喂回 analyze() 的宿主路径。
  *
  * @param {Object} opts 与 analyze() 相同的参数
@@ -387,7 +388,7 @@ export function buildHostReadInstruction(opts) {
 /**
  * 单次视觉分析总入口：宿主多模态优先，回落 Fmode API。
  *
- * - 宿主命中且运行在 Claude Code / Codex 会话内 → 返回 { provider:'host', ...,
+ * - 宿主命中且运行在 FmodeCode / Claude Code / Codex 会话内 → 返回 { provider:'host', ...,
  *   instruction }，AI 用自己的 Read 工具读图后按提示词分析，不再调 GLM；
  * - 否则走 Fmode API（glm-5.3-flash）。
  *
