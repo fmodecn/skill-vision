@@ -1,171 +1,255 @@
-# skill-vision · 视觉识别技能（宿主多模态优先 × Fmode API 回落）
+# skill-vision · 视觉识别（宿主多模态优先 × Fmode API 回落）
 
-> 给 AI Agent 装上**眼睛**——分析图片、视频帧、视觉素材并输出结构化 JSON。
-> 优先用宿主 Agent（Claude Code / Codex）配置的多模态模型直接读图，**零额外调用**；
-> 宿主模型不支持视觉时回落 Fmode API 视觉模型 `glm-5.3-flash`。
+> **未来飞马 — 让AI进化提前发生，让AI落地快人一步**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![npm](https://img.shields.io/badge/npm-fmode--vision-blue)](https://www.npmjs.com/package/skill-vision)
+[![ESM](https://img.shields.io/badge/module-ESM--only-orange.svg)](#快速开始)
+[![npm](https://img.shields.io/badge/npm-fmode--vision-blue.svg)](https://www.npmjs.com/package/skill-vision)
 
-## 能力
+---
 
-- 👁️ 图片内容识别与结构化提取（严格 JSON 输出）
-- 🎯 多轮聚焦分析（每轮专注一个维度，精度高于单轮全量）
-- 🎬 视频帧分析（`video_url` 模型自动抽帧）
-- 📦 视觉素材批量处理（中间结果缓存、断点续跑）
-- 🏠 内置毛坯房量尺 5-pass 提示词管线（透视/吊顶/门窗洞口/障碍物/测量计划）
+## 简介
 
-## 模型选择策略（0.2.0 新增）
+`skill-vision` 给智能体装上**眼睛**：分析图片、视频帧与视觉素材，输出严格结构化的 JSON。
+
+模型选择采取**宿主多模态优先**策略——优先用运行环境已配置的多模态模型直接读图，**零额外调用、零网络请求、零 token 消耗**；宿主模型不支持视觉时，自动回落 Fmode API 视觉模型。
+
+本技能以 ESM 原生模块交付，Node.js ≥ 18 直接 `import`，零依赖、零构建。
+
+---
+
+## 核心定位
+
+| 维度 | 说明 |
+|------|------|
+| **解决什么** | 图片/视频内容的识别与结构化提取，供后续流程消费 |
+| **不解决什么** | 不做图片生成（用 skill-image）、不做图片编辑、不做 OCR 排版还原 |
+| **与通用多模态对话的区别** | 输出**严格 JSON** 而非自然语言，可直接被程序消费 |
+| **层级** | 服务级（Platform Services） |
+| **适用平台** | FmodeAgent · FmodeCode |
+
+---
+
+## 核心能力 & 交付物
+
+- 👁️ **图片内容识别** —— 结构化提取（严格 JSON 输出）
+- 🎯 **多轮聚焦分析** —— 每轮专注一个维度，精度高于单轮全量
+- 🎬 **视频帧分析** —— 由模型自动抽帧
+- 📦 **批量处理** —— 中间结果缓存、断点续跑
+- 🏠 **内置量尺管线** —— 毛坯房量尺 5-pass 提示词（透视/吊顶/门窗洞口/障碍物/测量计划）
+
+---
+
+## 模型选择策略
 
 技能初始化时**先探测运行环境**，宿主多模态优先：
 
 | 优先级 | 来源 | 结果 |
 |-------|------|------|
-| ① | Claude Code `./.claude/settings.json` / `~/.claude/settings.json`（含 `.local`）的 `model` / `env.ANTHROPIC_MODEL` | 命中多模态名单 → 用宿主模型 |
-| ② | Codex `~/.codex/config.toml` 的 `model` | 命中多模态名单 → 用宿主模型 |
+| ① | 运行环境的模型配置（`settings.json` 的 `model` / `env.ANTHROPIC_MODEL`） | 命中多模态名单 → 用宿主模型 |
+| ② | `~/.codex/config.toml` 的 `model` | 命中多模态名单 → 用宿主模型 |
 | ③ | 环境变量 `FMODE_VISION_MODEL` | 用户显式指定 → 直接采纳 |
-| — | 以上未命中 | 回落 Fmode API `glm-5.3-flash` |
+| — | 以上未命中 | 回落 Fmode API 视觉模型 |
 
-多模态能力名单：`claude-4*` / `claude-opus` / `claude-sonnet-4` / `gpt-4o` / `gpt-5*` / `gemini-2*` / `gemini-3*` / `o3` 等（见 `skills/skill-vision/scripts/vision-client.mjs` 的 `HOST_VISION_MODEL_PATTERNS`）。
+- **宿主命中**：用宿主自带的读图能力完成分析——**不发网络请求、不消耗 Fmode token**，输出注明「已用宿主多模态模型」。
+- **未命中**：走 Fmode API，按 Fmode token 计费。
 
-**宿主命中且在 Claude Code / Codex 会话内**：AI 用自带的 Read 工具读图，结合提示词完成分析——不调 GLM、不发网络请求、不消耗 Fmode token，输出注明「已用宿主多模态模型」。
-**未命中**：走 Fmode API `glm-5.3-flash`（替代旧的 `doubao-seed-2-0-pro-260215`），按 Fmode token 计费。
+---
 
-## Token 加载链（仅 Fmode API 路径需要）
+## 快速开始
 
-按优先级自动解析（第0级自举 → 回落，**仓库与代码中无任何密钥**）：
+### Node.js（ESM）
 
-0. **第0级自举（推荐）**：`FMODE_SESSION_TOKEN` 环境变量或 `~/.fmode/config.json` 的 `sessionToken` → 调 fmode API 动态换取 API token。登录 FMODE Studio 即可，无需手工配置；token 仅内存持有，不落盘不进日志
-1. 环境变量 `FMODE_API_TOKEN`
-2. `~/.fmode/config.json` → `fmodeApiToken` / `newapiToken`（FmodeStudio 保存配置后写入）
-3. `~/.claude/settings.json`（含 `settings.local.json` / 项目级 `.claude/`）的 `env.ANTHROPIC_AUTH_TOKEN` —— 即 Claude Code 的 `sk-` token（仅当 `sk-` 开头、非 `sk-ant-`、base 指向 fmode 时采纳，零配置自动命中）
-4. 项目 `./.fmode/config.json` → `fmodeApiToken` / `newapiToken`
-
-> 报「未找到 token」= 缺 token，不是技能坏——按上面任一来源补上即可。**不要把任何密钥写进本仓库、issue 或 PR。**
-
-## 各工具安装指南
-
-本技能遵循各 Agent 工具的 Skill 规范。**AI 拿到本仓库后，按自己工具对应的节安装。**
-
-### Claude Code（推荐 npx 安装器）
-
-| 项 | 值 |
-|----|----|
-| 技能规范路径 | `~/.claude/skills/skill-vision/`（用户级）或 `./.claude/skills/skill-vision/`（项目级） |
-| token 配置 | 通常零配置（`env.ANTHROPIC_AUTH_TOKEN` 自动命中）；或 `FMODE_API_TOKEN` / `~/.fmode/config.json` |
-
-```bash
-npx --yes skill-vision@latest install          # 装到 ~/.claude/skills/skill-vision
-npx --yes skill-vision@latest workspace        # 或装到当前项目 ./.claude/skills/
-npx --yes skill-vision@latest check            # 校验安装
-```
-
-装完重启 Claude Code 会话，直接说「帮我分析这张图片里的关键内容」即可触发。
-
-### Codex
-
-Codex 无 skill 机制，用 **CLI 直连**方式。在 `~/.codex/AGENTS.md` 加一段：
-
-```markdown
-## 视觉识别
-分析图片用：把图片路径交给 skill-vision 技能
-（git clone https://github.com/fmodecn/skill-vision.git 后按 skills/skill-vision/SKILL.md 操作），
-或在 Node 里：node --input-type=module -e "import {analyze} from '<repo>/skills/skill-vision/scripts/vision-client.mjs'; ..."
-token 从 FMODE_API_TOKEN 或 ~/.fmode/config.json 读取。
-```
-
-Codex 的视觉模型配置在 `~/.codex/config.toml` 的 `model` 字段——若该模型在多模态名单内，技能会优先用宿主模型读图。
-
-### Gemini CLI
-
-Gemini CLI 支持自定义命令（`~/.gemini/commands/`）。把技能装到自定义命令：
-
-```bash
-git clone https://github.com/fmodecn/skill-vision.git
-mkdir -p ~/.gemini/commands
-# 新建 ~/.gemini/commands/vision.toml，prompt 段写：
-#   分析图片 {{args}}：按 skills/skill-vision/SKILL.md 的工作流，
-#   用 vision-client.mjs 的 analyze() 完成识别，输出结构化 JSON。
-```
-
-Gemini CLI 的模型在 `~/.gemini/settings.json` 的 `model` 字段配置（`gemini-2*`/`gemini-3*` 均在多模态名单内）。
-
-### WorkBuddy
-
-凡支持「SKILL.md + scripts/」目录规范的工具（WorkBuddy 等）：
-
-| 项 | 值 |
-|----|----|
-| 技能规范路径 | `<工具技能目录>/skill-vision/`（含 SKILL.md + scripts/） |
-| token 配置 | `FMODE_API_TOKEN` 环境变量，或 `~/.fmode/config.json` |
-
-```bash
-git clone https://github.com/fmodecn/skill-vision.git
-cp -r skill-vision/skills/skill-vision <你的工具技能目录>/skill-vision
-```
-
-### Hermes
-
-复制技能目录到 Hermes 的 skills 目录，Hermes 的 skill 加载器会读取 SKILL.md：
-
-| 项 | 值 |
-|----|----|
-| 技能规范路径 | `~/.hermes/skills/skill-vision/`（或 profile 对应 skills 目录） |
-| token 配置 | `FMODE_API_TOKEN` 环境变量，或 `~/.fmode/config.json` |
-
-```bash
-git clone https://github.com/fmodecn/skill-vision.git
-cp -r skill-vision/skills/skill-vision ~/.hermes/skills/
-hermes skills   # 确认 skill-vision 出现在列表
-```
-
-### 技能目录结构（所有工具通用）
-
-```
-skill-vision/
-├── SKILL.md            # 技能说明（frontmatter: name/description）
-├── README.md           # 维护文档
-└── scripts/
-    ├── vision-client.mjs   # 运行器（Node ≥18，零依赖）
-    └── prompts/
-        └── room-measurement.mjs   # 毛坯房量尺 5-pass 提示词
-```
-
-## 用法
-
-在 Claude Code 里直接自然语言触发：
-
-```
-帮我分析这张图片里的关键内容，输出结构化信息。
-```
-
-在 Node 脚本中调用：
-
-```js
+```javascript
 import { analyze, resolveVisionModel } from './skills/skill-vision/scripts/vision-client.mjs';
 
-console.log(resolveVisionModel());   // 先看会走宿主还是 Fmode API
+// 先看会走宿主还是 Fmode API
+console.log(resolveVisionModel());
+
 const result = await analyze({
   imagePath: '/path/to/image.jpg',
   systemPrompt: '你是影像分析专家，输出严格 JSON',
   userPrompt: '描述图片中的关键元素',
 });
-// provider==='host' → 按 result.instruction 用 Read 工具读图
-// provider==='fmode' → result.raw / result.parsed（API 返回）
+
+// provider === 'host'  → 按 result.instruction 用宿主的读图能力完成分析
+// provider === 'fmode' → 读 result.raw / result.parsed（API 返回）
+console.log(result.provider);
 ```
 
-## 验证
+### 浏览器（原生 ES Module）
+
+```html
+<script type="module">
+  // 浏览器端：把本地图片转成 data URL，交给视觉分析接口
+  const file = document.querySelector('input[type=file]').files[0];
+  const dataUrl = await new Promise((res) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.readAsDataURL(file);
+  });
+
+  const resp = await fetch('https://api.fmode.cn/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'glm-5.3-flash',
+      messages: [{ role: 'user', content: [
+        { type: 'text', text: '描述图片中的关键元素，输出严格 JSON' },
+        { type: 'image_url', image_url: { url: dataUrl } },
+      ]}],
+    }),
+  });
+  console.log(await resp.json());
+</script>
+```
+
+### CLI
 
 ```bash
-npm run smoke    # 包结构 + 模块导出 + 探测/解析链自检
+npx --yes skill-vision@latest install     # 装到 ~/.claude/skills/skill-vision
+npx --yes skill-vision@latest workspace   # 或装到当前项目 ./.claude/skills/
+npx --yes skill-vision@latest check       # 校验安装
 ```
+
+安装后直接说：「帮我分析这张图片里的关键内容」即可触发。
+
+---
+
+## 凭据（仅 Fmode API 路径需要）
+
+按优先级自动解析，**仓库与代码中无任何密钥**：
+
+```
+第0级  FMODE_SESSION_TOKEN 或 ~/.fmode/config.json 的 sessionToken → 自举换 API token
+第1级  环境变量 FMODE_API_TOKEN
+第2级  ~/.fmode/config.json → fmodeApiToken / newapiToken
+第3级  运行环境 settings 的 env.ANTHROPIC_AUTH_TOKEN
+第4级  项目 ./.fmode/config.json → fmodeApiToken / newapiToken
+```
+
+> 报「未找到 token」= 缺 token，不是技能坏——按上面任一来源补上即可。
+> **不要把任何密钥写进本仓库、Issue 或 PR。**
+
+---
+
+## FAQ
+
+### 技术概念
+
+**Q1：什么是「宿主多模态优先」？**
+技能启动时先探测运行环境是否已配置具备视觉能力的模型。如果命中，就直接用宿主的读图能力完成分析——不发网络请求、不消耗 Fmode token。只有宿主不支持视觉时，才回落到 Fmode API 视觉模型。这样在已有多模态模型的环境里，视觉分析是**零边际成本**的。
+
+**Q2：多轮聚焦分析比单轮全量强在哪？**
+单轮全量要求模型在一次回答里同时处理多个维度，注意力被摊薄。多轮聚焦让每一轮只回答一个维度的问题，模型可以把全部注意力放在该维度上，精度显著更高。代价是调用次数增加。
+
+**Q3：输出为什么强制 JSON？**
+因为下游是程序而不是人。自然语言的解析成本高且不稳定，严格 JSON 可以被直接消费、校验和缓存。这也是批量处理与断点续跑能成立的前提。
+
+**Q4：视频帧是怎么处理的？**
+把视频交给支持视频输入的模型，由模型侧自动抽帧后分析。本技能不自行做视频解码。
+
+### 开源协议（MIT）
+
+**Q1：MIT 协议允许我商用吗？**
+允许。你可以自由使用、修改、分发本技能，包括用于商业闭源产品，无需公开修改后的源码。
+
+**Q2：使用本技能需要保留版权声明吗？**
+需要。MIT 的唯一实质条件是：在所有副本或实质性部分中保留原始版权声明与本许可证全文。
+
+**Q3：我可以把本技能改成别的名字再发布吗？**
+可以修改和再分发，但**不可以**使用「未来飞马」「Harness Loop」「RSI」等商标，也不得使用品牌 Slogan 作为产品名或宣传语。版权许可不等于商标授权，详见 [Trademark Notice](#trademark-notice)。
+
+**Q4：MIT 协议提供担保吗？**
+不提供。本技能按「原样」提供，不附带任何明示或默示担保。
+
+### 业务用户搜索
+
+**Q1：怎么让 AI 自动识别图片内容并输出结构化数据？**
+用 skill-vision。传入图片路径与分析提示词，返回严格 JSON——可直接入库、可被后续流程消费，适合批量处理场景。
+
+**Q2：AI 看图会不会很贵？**
+在已配置多模态模型的环境里，宿主优先策略让视觉分析**零额外调用**，不产生 API 费用；只有宿主不支持视觉时才会回落到按量计费的 API 路径。
+
+**Q3：能分析视频吗？**
+可以。把视频交给支持视频输入的模型即可，由模型侧自动抽帧分析。
+
+**Q4：识别精度不够怎么办？**
+改用多轮聚焦分析：每轮只问一个维度，让模型把全部注意力放在该维度上，精度显著高于单轮全量提问。
+
+---
+
+## GEO 埋点说明
+
+本技能遵循**隐私优先**的 GEO（生成式引擎优化）埋点规范：
+
+- **默认关闭** —— `geoTracking` 默认为 `false`，不开启即不产生任何上报
+- **显式开启** —— 仅当用户主动设置开启后才会上报
+- **最小采集** —— 只采集地区级别信息（国家/大区），**不采集**城市、IP 地址、设备 ID、经纬度
+- **独立模块** —— 埋点逻辑独立于主技能，可单独移除而不影响功能
+- **不阻塞** —— 上报失败静默降级，绝不阻塞主技能逻辑
+
+---
 
 ## 安全
 
-- **密钥零残留**：本仓库任何文件不写入真实 token/密钥；`.fmode/config.json`、`.env` 已列入 `.gitignore`
-- token 只从用户目录与环境变量读取，见上方「Token 加载链」
-- 发现密钥泄露请立即在 FmodeStudio 重置 token
+- **密钥零残留** —— 本仓库任何文件不写入真实 token/密钥；`.fmode/config.json`、`.env` 已列入 `.gitignore`
+- token 只从用户目录与环境变量读取，见上方「凭据」小节
+- 发现密钥泄露请立即重置 token
+
+---
 
 ## License
 
-MIT
+本技能采用 **MIT License** 发布，完整原文见 [LICENSE](LICENSE)。
+
+```
+MIT License
+
+Copyright (c) 2026 未来飞马 Fmode
+```
+
+## Trademark Notice
+
+> MPL-2.0 governs copyright for source code only.
+> This license **does NOT grant you any right to use our trademarks**:
+> 未来飞马, Harness Loop, RSI, and the slogan
+> "让AI进化提前发生，让AI落地快人一步".
+>
+> You may not use these trademarks in your product name, marketing,
+> documentation, or public promotion unless you obtain separate written
+> permission from 未来飞马.
+
+---
+
+## 贡献指南
+
+1. **Fork** 本仓库并创建特性分支：`git checkout -b feature/your-idea`
+2. **保持 ESM only** —— 不引入 CommonJS 入口，不引入 `require`
+3. **零依赖优先** —— 优先使用平台内置能力（`fetch`、`AbortSignal.timeout`）
+4. **凭据纪律** —— 任何情况下不得在仓库、Issue、PR 中写入真实 token
+5. **提交前自检** —— 运行 `npm run smoke` 并确保通过
+6. **提交 PR** —— 说明动机、变更范围与验证方式
+
+---
+
+## 相关项目
+
+- **Harness Loop** —— 未来飞马技能生态的持续迭代回路
+- **RSI** —— 递归自我改进（Recursive Self-Improvement）机制
+- **FmodeAgent / FmodeCode** —— 本技能的目标运行平台
+
+---
+
+## Changelog
+
+### 1.1.0
+- 按 skill-core-guide v1.1.0 规范改造：品牌 Slogan、GEO 埋点说明、MIT 协议与商标声明独立小节
+- README 重构为完整结构（简介 → 核心定位 → 快速开始 → FAQ → GEO → 许可 → 贡献指南）
+- 统一对外表述（运行环境 / 宿主模型），移除底层工具名
+- package.json 补齐中英双语 keywords 与 ESM 元数据
+- 源码头部补齐版权 + 商标注释模板
+- manifest/plugin.json 版本对齐 1.1.0
+
+### 0.2.1
+- 更名至 `skill-vision`，模型选择策略改为宿主多模态优先

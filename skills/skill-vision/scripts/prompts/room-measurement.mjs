@@ -1,3 +1,13 @@
+// Copyright (c) 未来飞马
+//
+// Licensed under the MIT License. See LICENSE in the project root
+// for the full license text.
+//
+// Trademark Notice:
+// The MIT license grants copyright permissions for source code only.
+// It does NOT grant any rights to use trademarks including "未来飞马",
+// "Harness Loop", "RSI", and associated slogan "让AI进化提前发生，让AI落地快人一步".
+// Any use of these trademarks requires separate written permission.
 /**
  * 毛坯房量尺 — 5轮聚焦提示词模块
  *

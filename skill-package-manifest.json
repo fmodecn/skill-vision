@@ -1,6 +1,6 @@
 {
   "name": "skill-vision",
-  "version": "0.2.1",
+  "version": "1.1.0",
   "description": "Claude Code 独立技能包：通过 Fmode API 视觉模型对图片、视频进行分析。支持单轮分析、多轮聚焦分析、视频帧分析与批量处理，并内置毛坯房量尺 5-pass 分析提示词。",
   "plugin": "skill-vision",
   "skills": [
@@ -13,5 +13,7 @@
   "workspaceInstallCommand": "npx skill-vision@latest workspace",
   "workspaceSkillPath": ".claude/skills/skill-vision/SKILL.md",
   "globalSkillPath": "%USERPROFILE%/.claude/skills/skill-vision/SKILL.md",
-  "installHint": "工作区安装：npx skill-vision@latest workspace，会写入 ./.claude/skills/skill-vision/。用户级安装：npx skill-vision@latest install，会写入 ~/.claude/skills/skill-vision/。模型选择：宿主多模态优先（Claude Code / Codex 配置的视觉模型直接读图），未命中回落 Fmode API glm-5.3-flash。Token 优先级：FMODE_API_TOKEN > ~/.fmode/config.json > ~/.claude/settings.json 的 env.ANTHROPIC_AUTH_TOKEN（sk- token，自动读取）> 项目 .fmode/config.json。"
+  "installHint": "工作区安装：npx skill-vision@latest workspace，会写入 ./.claude/skills/skill-vision/。用户级安装：npx skill-vision@latest install，会写入 ~/.claude/skills/skill-vision/。模型选择：宿主多模态优先（Claude Code / Codex 配置的视觉模型直接读图），未命中回落 Fmode API glm-5.3-flash。Token 优先级：FMODE_API_TOKEN > ~/.fmode/config.json > ~/.claude/settings.json 的 env.ANTHROPIC_AUTH_TOKEN（sk- token，自动读取）> 项目 .fmode/config.json。",
+  "copyright": "Copyright (c) 2026 未来飞马 Fmode",
+  "license": "MIT"
 }

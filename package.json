@@ -1,8 +1,15 @@
 {
   "name": "skill-vision",
-  "version": "0.2.1",
-  "description": "Claude Code skill: analyze images and videos with host-multimodal-first detection (Claude Code / Codex vision models) falling back to Fmode API glm-5.3-flash. Single-pass and multi-pass focused analysis with structured JSON output. Token chain: FMODE_API_TOKEN, ~/.fmode/config.json, ~/.claude/settings.json env.ANTHROPIC_AUTH_TOKEN, project .fmode/config.json.",
+  "version": "1.1.0",
+  "description": "视觉识别技能：分析图片、视频与视觉素材并输出严格结构化 JSON。宿主多模态优先（零额外调用），未命中回落 Fmode API 视觉模型。支持单轮分析、多轮聚焦分析与批量处理。",
   "type": "commonjs",
+  "main": "./skills/skill-vision/scripts/vision-client.mjs",
+  "exports": {
+    ".": {
+      "import": "./skills/skill-vision/scripts/vision-client.mjs",
+      "default": "./skills/skill-vision/scripts/vision-client.mjs"
+    }
+  },
   "bin": {
     "skill-vision": "bin/skill-vision.js"
   },
@@ -26,14 +33,32 @@
     "skills/"
   ],
   "keywords": [
-    "claude-code",
-    "claude-skill",
     "fmode",
+    "hermes",
+    "harness-loop",
+    "rsi",
+    "ai-agent",
+    "agent-skill",
+    "super-skill",
+    "esm",
+    "future-feima",
     "vision",
     "image-analysis",
     "multimodal",
-    "glm"
+    "structured-output",
+    "video-analysis",
+    "未来飞马",
+    "智能体技能",
+    "超级技能",
+    "图像识别",
+    "视觉分析",
+    "多模态",
+    "结构化提取"
   ],
+  "author": "Yuyang001 (FmodeAgent)",
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {}
 }
